@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PagoMóvil Exprés - Pasarela Comercial Pro</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Librería para generar códigos QR automáticos -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <meta name="theme-color" content="#0f172a">
+    
+    <!-- Manifiesto PWA Integrado y Optimizado para Instalación Nativa -->
+    <link rel="manifest" href="data:application/manifest+json,{
+        &quot;name&quot;: &quot;PagoMóvil Exprés&quot;,
+        &quot;short_name&quot;: &quot;PagoMóvil&quot;,
+        &quot;start_url&quot;: &quot;/&quot;,
+        &quot;display&quot;: &quot;standalone&quot;,
+        &quot;background_color&quot;: &quot;#0f172a&quot;,
+        &quot;theme_color&quot;: &quot;#1e293b&quot;,
+        &quot;icons&quot;: [{
+            &quot;src&quot;: &quot;https://cdn-icons-png.flaticon.com/512/2830/2830284.png&quot;,
+            &quot;sizes&quot;: &quot;512x512&quot;,
+            &quot;type&quot;: &quot;image/png&quot;,
+            &quot;purpose&quot;: &quot;any maskable&quot;
+        }]
+    }">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col justify-between p-4 selection:bg-emerald-500 selection:text-white">
+
+    <div class="max-w-md mx-auto w-full bg-slate-800 rounded-2xl shadow-2xl p-6 border border-slate-700">
+        
+        <!-- PANTALLA 1: SUSCRIPCIÓN / BIENVENIDA COMERCIAL -->
+        <div id="pantallaLicencia" class="space-y-4">
+            <header class="text-center mb-4">
+                <span class="bg-emerald-500/10 text-emerald-400 text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-widest border border-emerald-500/20">Tecnología SaaS Venezolana</span>
+                <h1 class="text-2xl font-black text-white mt-2">PagoMóvil <span class="text-emerald-400">Exprés</span></h1>
+                <p class="text-xs text-slate-400 mt-1">Pasarela de cobros QR interbancarios automáticos para comercios</p>
+            </header>
+            
+            <div class="bg-slate-700/40 p-4 rounded-xl border border-slate-600 text-center space-y-2 relative overflow-hidden">
+                <div class="absolute -right-6 -top-6 w-20 h-20 bg-emerald-500/10 rounded-full blur-xl"></div>
+                <span class="bg-emerald-500/20 text-emerald-400 text-xs font-extrabold px-3 py-1 rounded-full uppercase">Suscripción Comercial Pro</span>
+                <p class="text-xs text-slate-300">Genera códigos QR inteligentes con la tasa oficial BCV al céntimo y monto exacto en bolívares.</p>
+                <div class="text-2xl font-black text-white pt-1">$3 <span class="text-xs text-slate-400 font-normal">/ mes</span></div>
+            </div>
+
+            <div class="space-y-2">
+                <button onclick="entrarApp()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-3 rounded-xl transition shadow-lg text-sm flex items-center justify-center gap-2">
+                    <span>🚀 Probar 7 Días Gratis</span>
+                </button>
+                <button onclick="mostrarPagoSuscripcion()" class="w-full bg-sky-600 hover:bg-sky-500 text-white font-bold py-2.5 rounded-xl transition shadow text-xs flex items-center justify-center gap-2">
+                    <span>⭐ Pagar Suscripción Comercial ($3)</span>
+                </button>
+                
+                <!-- Botón de Instalación como App Nativa (Se activa automáticamente al cumplir criterios PWA) -->
+                <button id="btnInstalarApp" onclick="dispararInstalacion()" class="hidden w-full bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white font-bold py-3 rounded-xl transition shadow-xl text-xs items-center justify-center gap-2 border border-indigo-400/30">
+                    <span>📲 Instalar Aplicación Pro en el Celular</span>
+                </button>
+            </div>
+            
+            <div class="mt-3 border-t border-slate-700 pt-3">
+                <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">💼 Beneficios para tu Negocio</h3>
+                <ul class="text-xs text-slate-400 space-y-1 list-disc pl-4">
+                    <li>Se instala como app independiente en el menú (sin barras de navegador).</li>
+                    <li>Tasa oficial del BCV sincronizada en línea automáticamente.</li>
+                    <li>Cobros rápidos sin errores de transcripción para tus clientes.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- PANTALLA PAGO DE SUSCRIPCIÓN -->
+        <div id="pantallaPagoSuscripcion" class="hidden space-y-4">
+            <header class="text-center mb-2 border-b border-slate-700 pb-2">
+                <h2 class="text-base font-black text-sky-400">Activa tu Suscripción Pro</h2>
+                <p class="text-[10px] text-slate-400">Realiza el pago móvil de la suscripción mensual ($3 al cambio oficial BCV)</p>
+            </header>
+
+            <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 space-y-2 text-xs">
+                <div class="bg-sky-950/40 p-2.5 rounded-lg border border-sky-500/30 text-center mb-2">
+                    <span class="text-[10px] text-sky-300 block">Monto exacto a transferir:</span>
+                    <strong id="montoSuscripcionBs" class="text-white text-base">Calculando... Bs</strong>
+                </div>
+                
+                <div class="flex justify-between"><span class="text-slate-400">Banco Receptor:</span><span class="font-bold text-white">Banesco (0134)</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Teléfono:</span><span class="font-bold text-white">04122118342</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Cédula/RIF:</span><span class="font-bold text-white">V-19817308</span></div>
+            </div>
+
+            <div class="space-y-2">
+                <a id="linkWhatsapp" href="#" target="_blank" class="block w-full text-center bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2.5 rounded-xl transition shadow text-xs">
+                    💬 Enviar Comprobante por WhatsApp
+                </a>
+                <button onclick="volverInicio()" class="w-full bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold py-2 rounded-xl transition text-xs">
+                    ⬅️ Volver al Panel
+                </button>
+            </div>
+        </div>
+
+        <!-- PANTALLA 2: APLICACIÓN PRINCIPAL Y CONFIGURACIÓN -->
+        <div id="pantallaApp" class="hidden space-y-4">
+            <header class="text-center mb-2 flex justify-between items-center border-b border-slate-700 pb-2">
+                <div>
+                    <h1 id="lblNombreNegocio" class="text-base font-black text-emerald-400">Mi Negocio</h1>
+                    <p class="text-[10px] text-slate-400">Terminal de Cobro QR Automático</p>
+                </div>
+                <div class="flex gap-1">
+                    <button onclick="abrirConfig()" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-2.5 py-1 rounded-lg border border-slate-600">⚙️ Config</button>
+                    <button onclick="verGuia()" class="text-xs bg-slate-700 hover:bg-slate-600 text-slate-200 px-2.5 py-1 rounded-lg border border-slate-600">Ayuda</button>
+                </div>
+            </header>
+
+            <!-- Tasa BCV Oficial en Línea -->
+            <div class="bg-slate-700/50 p-2.5 rounded-xl flex justify-between items-center border border-slate-600">
+                <span class="text-xs font-medium text-slate-300">Tasa BCV Oficial (En Línea):</span>
+                <div class="flex items-center gap-1.5">
+                    <span id="tasaBcvTexto" class="text-emerald-400 font-bold text-sm">Consultando...</span>
+                    <span class="text-xs text-slate-400">Bs/$</span>
+                </div>
+            </div>
+
+            <!-- Calculadora -->
+            <div class="space-y-2">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-300 mb-1">Monto en Dólares ($):</label>
+                    <input type="number" id="montoDolar" placeholder="Ej. 15" class="w-full bg-slate-900 text-white px-3 py-2 rounded-xl text-base font-bold border border-slate-600 focus:outline-none focus:border-emerald-500">
+                </div>
+                <div class="bg-emerald-950/40 p-2.5 rounded-xl border border-emerald-500/30 text-center">
+                    <span class="text-[10px] text-emerald-400 block uppercase tracking-wider font-semibold">Total a Pagar en Bolívares</span>
+                    <span id="resultadoBs" class="text-xl font-black text-emerald-300">0,00 Bs</span>
+                </div>
+            </div>
+
+            <!-- Sección de Código QR y Datos de Pago -->
+            <div class="bg-slate-900 p-3 rounded-xl border border-slate-700 space-y-3 text-center">
+                <h2 class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Escanea para pagar o usa los datos</h2>
+                
+                <div class="bg-white p-3 rounded-xl inline-block shadow-inner mx-auto">
+                    <div id="qrcode" class="flex justify-center"></div>
+                </div>
+
+                <div class="text-left space-y-1 border-t border-slate-800 pt-2">
+                    <div class="flex justify-between text-xs"><span class="text-slate-400">Banco:</span><span id="resBanco" class="font-bold text-white">Banesco (0134)</span></div>
+                    <div class="flex justify-between text-xs"><span class="text-slate-400">Teléfono:</span><span id="resTelefono" class="font-bold text-white">04120000000</span></div>
+                    <div class="flex justify-between text-xs"><span class="text
